@@ -24,6 +24,7 @@ import os
 import random
 import sys
 
+import pandas as pd
 import numpy as np
 import torch
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
@@ -406,34 +407,41 @@ class WsdmProcessor(DataProcessor):
     def get_train_examples(self, data_dir):
         """See base class."""
         return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.csv")), "train")
+            self._read_tsv(os.path.join(data_dir, "local_train.csv")), "train")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
         return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev.csv")), "dev")
+            self._read_tsv(os.path.join(data_dir, "local_dev.csv")), "dev")
             
-    def get_test_examples(self, data_dir):
-        """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "test.csv")), "dev")
 
     def get_labels(self):
         """See base class."""
-        return ["0", "1"]
+        return ["0", "1","2"]
 
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
+        def convert(label):
+            if(label=='agreed'):
+                return 0
+            elif(label=='disagreed'):
+                return 1
+            elif(label=='unrelated'):
+                return 2
+            else:
+                raise TypeError,('no this label type')
+            
         examples = []
-        for (i, line) in enumerate(lines):
-            if i == 0:
-                continue
-            guid = "%s-%s" % (set_type, line[0])
+        
+        data = pd.read_csv('train.csv')
+        #id,tid1,tid2,title1_zh,title2_zh,title1_en,title2_en,label
+        for i,(title1_zh,title2_zh,title1_en,title2_en,label) in enumerate( zip(data['title1_zh','title2_zh','title1_en','title2_en','label']) ):
+            guid = "%s-%s" % (set_type, i)
             text_a = line[1]
             text_b = line[2]
-            label = line[-1]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            label = convert(line[-1])
+
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -549,6 +557,13 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
 def simple_accuracy(preds, labels):
     return (preds == labels).mean()
 
+def weight_accuracy(preds, labels,weight):
+    total = 0
+    for i in range(len(preds)):
+        if(preds[i] == labels[i]):
+            total += weight[ labels[i] ]
+    return total / len(preds)
+
 
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
@@ -592,6 +607,8 @@ def compute_metrics(task_name, preds, labels):
         return {"acc": simple_accuracy(preds, labels)}
     elif task_name == "wnli":
         return {"acc": simple_accuracy(preds, labels)}
+    elif task_name == "wsdm":
+        return {"acc": weight_accuracy(preds, labels,[1/15,1/5,1/16])}
     else:
         raise KeyError(task_name)
 
@@ -706,6 +723,7 @@ def main():
         "qnli": QnliProcessor,
         "rte": RteProcessor,
         "wnli": WnliProcessor,
+        "wsdm": WsdmProcessor,
     }
 
     output_modes = {
@@ -718,6 +736,7 @@ def main():
         "qnli": "classification",
         "rte": "classification",
         "wnli": "classification",
+        "wsdm": "classification",
     }
 
     if args.local_rank == -1 or args.no_cuda:

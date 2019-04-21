@@ -429,6 +429,7 @@ class WsdmProcessor(DataProcessor):
 	def _create_examples(self, data, set_type):
 		"""Creates examples for the training and dev sets."""
 		#print(data.head(1)) 
+		ids = data['id'].tolist()
 		title1_zhs = data['title1_zh'].tolist()
 		title2_zhs = data['title2_zh'].tolist()
 		title1_ens = data['title1_en'].tolist()
@@ -437,8 +438,7 @@ class WsdmProcessor(DataProcessor):
 
 		examples = []
 		#id,tid1,tid2,title1_zh,title2_zh,title1_en,title2_en,label
-		for i,(title1_zh,title2_zh,title1_en,title2_en,label) in enumerate( zip(title1_zhs,title2_zhs,title1_ens,title2_ens,labels)):
-			guid = "%s-%s" % (set_type, i)
+		for i,(guid,title1_zh,title2_zh,title1_en,title2_en,label) in enumerate( zip(ids,title1_zhs,title2_zhs,title1_ens,title2_ens,labels)):
 			text_a = title1_zh
 			text_b = title2_zh
 			
@@ -542,7 +542,8 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
 			logger.info("label: %s (id = %d)" % (example.label, label_id))
 
 		features.append(
-				InputFeatures(input_ids=input_ids,
+				InputFeatures(guid=guid,
+							  input_ids=input_ids,
 							  input_mask=input_mask,
 							  segment_ids=segment_ids,
 							  label_id=label_id))
@@ -1104,11 +1105,12 @@ def main():
 		logger.info("***** Running evaluation *****")
 		logger.info("  Num examples = %d", len(eval_examples))
 		logger.info("  Batch size = %d", args.eval_batch_size)
+		all_index = torch.tensor([f.guid for f in eval_features], dtype=torch.long)
 		all_input_ids = torch.tensor([f.input_ids for f in eval_features], dtype=torch.long)
 		all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
 		all_segment_ids = torch.tensor([f.segment_ids for f in eval_features], dtype=torch.long)
 
-		eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids)
+		eval_data = TensorDataset(all_index,all_input_ids, all_input_mask, all_segment_ids)
 		# Run prediction for full data
 		eval_sampler = SequentialSampler(eval_data)
 		eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -1116,8 +1118,10 @@ def main():
 		model.eval()
 		nb_eval_steps = 0
 		preds = []
+		total_index = []
+		for index,input_ids, input_mask, segment_ids in tqdm(eval_dataloader, desc="Evaluating"):
+			total_index.extend(index.tolist())
 
-		for input_ids, input_mask, segment_ids in tqdm(eval_dataloader, desc="Evaluating"):
 			input_ids = input_ids.to(device)
 			input_mask = input_mask.to(device)
 			segment_ids = segment_ids.to(device)
@@ -1139,8 +1143,9 @@ def main():
 		output_test_file = os.path.join(args.output_dir, "preds.txt")
 		with open(output_test_file, "w") as writer:
 			logger.info("***** test results *****")
+			writer.write("Id,Category\n")
 			for i in range(preds.shape[0]):
-				writer.write("{0}\n".format( processor.get_labels()[preds[i]] ))
+				writer.write("{0},{1}\n".format(total_index[i],processor.get_labels()[preds[i]] ))
 
 
 if __name__ == "__main__":

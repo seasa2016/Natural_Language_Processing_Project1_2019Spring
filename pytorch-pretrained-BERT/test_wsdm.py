@@ -412,7 +412,7 @@ class WsdmProcessor(DataProcessor):
 	def get_dev_examples(self, data_dir):
 		"""See base class."""
 		return self._create_examples(
-			pd.read_csv(os.path.join(data_dir, "local_dev.csv")), "dev")
+			pd.read_csv(os.path.join(data_dir, "local_test.csv")), "test")
 			
 
 	def get_labels(self):
@@ -446,7 +446,8 @@ class WsdmProcessor(DataProcessor):
 			label = label
 
 			examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-			examples.append(InputExample(guid=guid, text_a=text_b, text_b=text_a, label=label))
+			if(set_type=='train'):
+				examples.append(InputExample(guid=guid, text_a=text_b, text_b=text_a, label=label))
 		return examples
 
 
@@ -565,10 +566,15 @@ def simple_accuracy(preds, labels):
 
 def weight_accuracy(preds, labels,weight):
 	total = 0
+	total_d = 0
+	count = 0
 	for i in range(len(preds)):
 		if(preds[i] == labels[i]):
 			total += weight[ labels[i] ]
-	return total / len(preds)
+			count += 1
+		total_d += weight[ labels[i] ]
+	print('count',count)
+	return total / total_d
 
 
 def acc_and_f1(preds, labels):
@@ -668,7 +674,7 @@ def main():
 						type=int,
 						help="Total batch size for training.")
 	parser.add_argument("--eval_batch_size",
-						default=8,
+						default=64,
 						type=int,
 						help="Total batch size for eval.")
 	parser.add_argument("--learning_rate",

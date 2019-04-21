@@ -434,9 +434,19 @@ class WsdmProcessor(DataProcessor):
 			guid = "%s-%s" % (set_type, i)
 			text_a = title1_zh
 			text_b = title2_zh
+			
+			if(type(text_a)==float and type(text_b)==float):
+				text_a = ''
+				text_b = ''
+			elif(type(text_a)==float):
+				text_a = text_b
+			if(type(text_b)==float):
+				text_b = text_a
+
 			label = label
 
 			examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+			examples.append(InputExample(guid=guid, text_a=text_b, text_b=text_a, label=label))
 		return examples
 
 
@@ -448,19 +458,18 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
 
 	features = []
 	for (ex_index, example) in enumerate(examples):
-		if ex_index % 10000 == 0:
+		if ex_index % 100000 == 0:
 			logger.info("Writing example %d of %d" % (ex_index, len(examples)))
 
 		tokens_a = tokenizer.tokenize(example.text_a)
 
 		tokens_b = None
 		if example.text_b:
-			print(example.guid)
 			tokens_b = tokenizer.tokenize(example.text_b)
 			# Modifies `tokens_a` and `tokens_b` in place so that the total
 			# length is less than the specified length.
 			# Account for [CLS], [SEP], [SEP] with "- 3"
-			_truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
+			tokens_a,tokens_b = _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
 		else:
 			# Account for [CLS] and [SEP] with "- 2"
 			if len(tokens_a) > max_seq_length - 2:
@@ -517,12 +526,11 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
 		if ex_index < 5:
 			logger.info("*** Example ***")
 			logger.info("guid: %s" % (example.guid))
-			logger.info("tokens: %s" % " ".join(
-					[str(x) for x in tokens]))
+			logger.info("tokens: %s" % " ".join([str(x) for x in tokens]))
+			logger.info("ori: {0} {1}".format([example.text_a], [example.text_b]))
 			logger.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
 			logger.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
-			logger.info(
-					"segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
+			logger.info("segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
 			logger.info("label: %s (id = %d)" % (example.label, label_id))
 
 		features.append(
@@ -540,15 +548,17 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
 	# one token at a time. This makes more sense than truncating an equal percent
 	# of tokens from each, since if one sequence is very short then each token
 	# that's truncated likely contains more information than a longer sequence.
-	while True:
-		total_length = len(tokens_a) + len(tokens_b)
-		if total_length <= max_length:
-			break
-		if len(tokens_a) > len(tokens_b):
-			tokens_a.pop()
-		else:
-			tokens_b.pop()
-
+		
+	if(len(tokens_a)+len(tokens_b)>max_length):
+	    if(len(tokens_a)>=max_length/2 and len(tokens_b)>=max_length/2):
+	        tokens_a = tokens_a[:max_length//2]
+	        tokens_b = tokens_b[:max_length//2]
+	    elif(len(tokens_a)>len(tokens_b)):
+	        tokens_a = tokens_a[:max_length-len(tokens_b)]
+	    else:
+	        tokens_b = tokens_b[:max_length-len(tokens_a)]
+	
+	return tokens_a,tokens_b
 
 def simple_accuracy(preds, labels):
 	return (preds == labels).mean()

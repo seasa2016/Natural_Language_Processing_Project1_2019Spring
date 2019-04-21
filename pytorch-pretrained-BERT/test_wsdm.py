@@ -416,8 +416,10 @@ class WsdmProcessor(DataProcessor):
 
 	def get_test_examples(self, file_name):
 		"""See base class."""
+		data = pd.read_csv(file_name)
+		data['label'] = pd.Series(['agreed']*data.shape[0], index=data.index)
 		return self._create_examples(
-			pd.read_csv(file_name), "test")
+			data, "test")
 			
 
 	def get_labels(self):

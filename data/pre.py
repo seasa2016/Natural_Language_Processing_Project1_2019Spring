@@ -12,6 +12,8 @@ data = data.apply(lambda x: x if(x['tid1'] != x['tid2']) else convert(x) ,axis=1
 
 from sklearn.model_selection import train_test_split
 
-train, test = train_test_split(data, test_size=0.2)
+part = 0.8
+train, test = data.iloc[:int(len(data)*part)],data.iloc[int(len(data)*part):]
+
 train.to_csv('local_train.csv')
 test.to_csv('local_test.csv')

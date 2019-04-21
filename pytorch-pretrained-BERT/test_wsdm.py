@@ -414,7 +414,7 @@ class WsdmProcessor(DataProcessor):
 		return self._create_examples(
 			pd.read_csv(os.path.join(data_dir, "local_test.csv")), "test")
 
-	def get_dev_examples(self, file_name):
+	def get_test_examples(self, file_name):
 		"""See base class."""
 		return self._create_examples(
 			pd.read_csv(file_name), "test")
@@ -792,7 +792,7 @@ def main():
 	if n_gpu > 0:
 		torch.cuda.manual_seed_all(args.seed)
 
-	if not args.do_train and not args.do_eval:
+	if not args.do_train and not args.do_eval and not args.do_test:
 		raise ValueError("At least one of `do_train` or `do_eval` must be True.")
 
 	if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and args.do_train:

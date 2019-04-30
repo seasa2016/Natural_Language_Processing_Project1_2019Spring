@@ -5,12 +5,22 @@ import torch.nn.functional as F
 
 class ESIM(nn.Module):
     def __init__(self, args):
+<<<<<<< HEAD
         super(ESIM, self).__init__(args)
 
         self.args = args
         self.dropout = 0.5
         self.hidden_size = args.hidden_size
         
+=======
+        super(ESIM, self).__init__()
+        self.args = args
+        self.dropout = 0.5
+        self.hidden_size = args.hidden_size
+        self.embeds_dim = args.embeds_dim
+        num_word = 20000
+        self.embeds = nn.Embedding(num_word, self.embeds_dim)
+>>>>>>> 74b0d0c67bd0816035c44eeb6bd8042684c0daec
         self.bn_embeds = nn.BatchNorm1d(self.embeds_dim)
         self.lstm1 = nn.LSTM(self.embeds_dim, self.hidden_size, batch_first=True, bidirectional=True)
         self.lstm2 = nn.LSTM(self.hidden_size*8, self.hidden_size, batch_first=True, bidirectional=True)

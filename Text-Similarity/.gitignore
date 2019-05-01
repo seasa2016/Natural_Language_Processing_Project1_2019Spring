@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 *.csv
 *.pickle
 .idea
 __pycache__
+=======
+*.csv
+*.pickle
+.idea
+__pycache__
+>>>>>>> 50e87cc8d4c5075145b1df9a3b6d8f394df4a6fe
 .DS_Store

@@ -11,15 +11,13 @@ import torch.nn as nn
 from torch.utils.data import Dataset,DataLoader
 from torchvision import transforms, utils
 
-from sklearn import metrics
-
 from models.Siamese import siamese
 
-def get_data(train_file,eval_file,batch_size):
-	train_dataset = itemDataset( file_name=train_file,mode='train',pred=args.pred,transform=True)
+def get_data(train_file,eval_file,batch_size,pred):
+	train_dataset = itemDataset( file_name=train_file,mode='train',pred=pred,transform=True)
 	train_dataloader = DataLoader(train_dataset, batch_size=batch_size,shuffle=True, num_workers=16,collate_fn=collate_fn)
 	
-	eval_dataset = itemDataset( file_name=eval_file,mode='eval',pred=args.pred,transform=True)
+	eval_dataset = itemDataset( file_name=eval_file,mode='eval',pred=pred,transform=True)
 	eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size,shuffle=True, num_workers=16,collate_fn=collate_fn)
 	
 	return {
@@ -46,7 +44,7 @@ def process(args):
 		print('the device is in cpu')
 
 	print("loading data")
-	dataloader = get_data(os.path.join(args.data,'train.csv'),os.path.join(args.data,'eval.csv'),args.batch_size)
+	dataloader = get_data(os.path.join(args.data,'train.csv'),os.path.join(args.data,'eval.csv'),args.batch_size,args.pred)
 
 	print("setting model")
 	if(args.model=='siamese'):
@@ -63,11 +61,11 @@ def process(args):
 	model.zero_grad()
 	for now in range(args.epoch):
 		model.train()
-		train(model,dataloader['train'],optimizer,criterion,device)
+		train(model,dataloader['train'],optimizer,device)
 		model.eval()
-		acc_best = eval(model,dataloader['eval'],criterion,device,acc_best,now,args)
+		acc_best = eval(model,dataloader['eval'],device,acc_best,now,args)
 
-def train(model,data_set,optimizer,criterion,device):
+def train(model,data_set,optimizer,device):
 	w = [1.0/16,1.0/15,1.0/5]
 	total={}
 	for i,data in enumerate(data_set):
@@ -91,14 +89,14 @@ def train(model,data_set,optimizer,criterion,device):
 			model.zero_grad()
 
 		if(i%160==0):
-			print(i,'train loss:{0}  acc:{2}/{3}, weighted:{4}'.format(total['loss'],total['count']['correct'],total['count']['num'],total['count']['weighted']/160))
+			print(i,'train loss:{0}  acc:{1}/{2}, weighted:{3}'.format(total['loss'],total['count']['correct'],total['count']['num'],total['count']['weighted']/160))
 			for cla in total:
 				for t in total[cla]:
-					total[cla][t]
+					total[cla][t] = 0
 
 	
 
-def eval(model,data_set,criterion,device,acc_best,now,args):
+def eval(model,data_set,device,acc_best,now,args):
 	total={}
 	
 	for i,data in enumerate(data_set):
@@ -116,7 +114,7 @@ def eval(model,data_set,criterion,device,acc_best,now,args):
 					except:
 						total[cla][t] = out[cla][t]
 	
-	print(i,'test loss:{0}  acc:{2}/{3}, weighted:{4}'.format(total['loss'],total['count']['correct'],total['count']['num'],total['count']['weighted']/len(data_set)))	
+	print(i,'test loss:{0}  acc:{1}/{2}, weighted:{3}'.format(total['loss'],total['count']['correct'],total['count']['num'],total['count']['weighted']/len(data_set)))	
 	print('-'*10)
 	
 	check = {

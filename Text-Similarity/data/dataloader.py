@@ -32,13 +32,13 @@ class itemDataset(Dataset):
 
                 if(label=='disagreed'):
                     t1,t2 = [0.0,1.0],[0.0,1.0]
-                    l = 0
+                    l = 2
                 elif(label=='agreed'):
                     t1,t2 = [0.0,1.0],[1.0,0.0]
                     l = 1
                 elif(label=='unrelated'):
                     t1,t2 = [1.0,0.0],[0.0,0.0]
-                    l = 2
+                    l = 0
 
                 self.data.append({
                     'query1':query[0],

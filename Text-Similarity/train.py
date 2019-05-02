@@ -13,11 +13,11 @@ from torchvision import transforms, utils
 
 from models.Siamese import siamese
 
-def get_data(train_file,eval_file,batch_size,pred):
-	train_dataset = itemDataset( file_name=train_file,mode='train',pred=pred,transform=True)
+def get_data(train_file,eval_file,batch_size,pred,maxlen):
+	train_dataset = itemDataset( file_name=train_file,mode='train',pred=pred,maxlen=maxlen)
 	train_dataloader = DataLoader(train_dataset, batch_size=batch_size,shuffle=True, num_workers=16,collate_fn=collate_fn)
 	
-	eval_dataset = itemDataset( file_name=eval_file,mode='eval',pred=pred,transform=True)
+	eval_dataset = itemDataset( file_name=eval_file,mode='eval',pred=pred,maxlen=maxlen)
 	eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size,shuffle=True, num_workers=16,collate_fn=collate_fn)
 	
 	return {
@@ -44,7 +44,7 @@ def process(args):
 		print('the device is in cpu')
 
 	print("loading data")
-	dataloader = get_data(os.path.join(args.data,'train.csv'),os.path.join(args.data,'eval.csv'),args.batch_size,args.pred)
+	dataloader = get_data(os.path.join(args.data,'train.csv'),os.path.join(args.data,'eval.csv'),args.batch_size,args.pred,args.maxlen)
 
 	print("setting model")
 	if(args.model=='siamese'):
@@ -144,9 +144,12 @@ def main():
 	parser.add_argument('--print_freq', default=1, type=int)
 	parser.add_argument('--input_size', default=49527, type=int)
 	parser.add_argument('--batch_first', default=True, type=bool)
-	parser.add_argument('--data', default='./data/all_no_embedding/', type=str)
 	parser.add_argument('--mode' , default= 'train', type=str)
 	parser.add_argument('--epoch', default= 10, type=int)
+
+
+	parser.add_argument('--data', default='./data/all_no_embedding/', type=str)
+	parser.add_argument('--maxlen', default= 128, type=int)
 
 	parser.add_argument('--model', required=True)
 	parser.add_argument('--pred', required=True)

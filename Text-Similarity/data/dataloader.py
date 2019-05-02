@@ -10,16 +10,17 @@ import sys
 import ast
 
 class itemDataset(Dataset):
-	def __init__(self,file_name,mode='train',pred='linear_two_class',transform=True):
+	def __init__(self,file_name,mode='train',pred='linear_two_class',maxlen=128,transform=True):
 		self.mode = mode
 		self.data = []
 		self.pred = pred
 
 		temp = pd.read_csv(file_name)
 		if(mode=='test'):
-			for query,length in zip(temp['query'],temp['length']):
+			for query in temp['query']:
 				query = ast.literal_eval(query)
-				length = ast.literal_eval(length)
+				query = [query[0][:maxlen],query[1][:maxlen]]
+				length = [len(query[0]),len(query[1])]
 
 				self.data.append({
 					'query':query,
@@ -40,9 +41,10 @@ class itemDataset(Dataset):
 				agreed = [1]
 				unrelated = [0]
 
-			for query,length,label in zip(temp['query'],temp['length'],temp['label']):
+			for query,label in zip(temp['query'],temp['label']):
 				query = ast.literal_eval(query)
-				length = ast.literal_eval(length)
+				query = [query[0][:maxlen],query[1][:maxlen]]
+				length = [len(query[0]),len(query[1])]
 
 				if(label=='disagreed'):
 					l = disagreed

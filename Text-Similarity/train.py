@@ -2,7 +2,7 @@ from time import gmtime, strftime
 import os
 import argparse
 
-from data.dataloader import itemDataset,collate_fn,ToTensor
+from data.dataloader import itemDataset,collate_fn
 
 import torch
 import torch.optim as optim
@@ -16,10 +16,10 @@ from sklearn import metrics
 from models.Siamese import siamese
 
 def get_data(train_file,eval_file,batch_size):
-	train_dataset = itemDataset( file_name=train_file,mode='train',transform=transforms.Compose([ToTensor()]))
+	train_dataset = itemDataset( file_name=train_file,mode='train',pred=args.pred,transform=True)
 	train_dataloader = DataLoader(train_dataset, batch_size=batch_size,shuffle=True, num_workers=16,collate_fn=collate_fn)
 	
-	eval_dataset = itemDataset( file_name=eval_file,mode='eval',transform=transforms.Compose([ToTensor()]))
+	eval_dataset = itemDataset( file_name=eval_file,mode='eval',pred=args.pred,transform=True)
 	eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size,shuffle=True, num_workers=16,collate_fn=collate_fn)
 	
 	return {
@@ -55,7 +55,7 @@ def process(args):
 
 	print(model)
 	optimizer = optim.Adam(model.parameters(),lr=args.learning_rate)
-	criterion = nn.KLDivLoss()
+	
 
 	acc_best = 000
 	print("start training")
@@ -69,58 +69,55 @@ def process(args):
 
 def train(model,data_set,optimizer,criterion,device):
 	w = [1.0/16,1.0/15,1.0/5]
-	total={'loss_relation':0,'loss_type':0,'count':0,'num':0,'acc':0}
+	total={}
 	for i,data in enumerate(data_set):
 		data = convert(data,device)
 
 		#deal with the classfication part
-		out = model(data['query'],data['length'])
-		
-		loss = criterion(F.log_softmax(out[0],dim=1),data['label_relation']) 
-		loss.backward(retain_graph=True)
-		total['loss_relation'] += loss.cpu().detach()
-		
-		loss = criterion(F.log_softmax(out[1],dim=1),data['label_type']) 
-		loss.backward(retain_graph=True)
-		total['loss_type'] += loss.cpu().detach()
-		total['num'] += out[0].shape[0]
-		
-		pred = (out[0].topk(1)[1]*(1+out[1].topk(1)[1])).view(-1)
-		total['count'] += (pred == data['label']).sum()
-		sample_weight = [w[i] for i in pred]
-		total['acc'] += metrics.accuracy_score(data['label'].tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
+		loss,out = model(data['query'],data['length'],data['label'])
+		loss.backward()
+
+		for cla in out:
+			if(cla not in total):
+				total[cla]={}
+			for t in out[cla]:
+				try:
+					total[cla][t] += out[cla][t]
+				except:
+					total[cla][t] = out[cla][t]
+
 		if(i%1==0):
 			optimizer.step()
 			model.zero_grad()
 
 		if(i%160==0):
-			print(i,'train loss(relation):{0} loss(type):{1} acc:{2}/{3}, weighted:{4}'.format(total['loss_relation'],total['loss_type'],total['count'],total['num'],total['acc']/160))
-			total={'loss_relation':0,'loss_type':0,'count':0,'num':0,'acc':0}
+			print(i,'train loss:{0}  acc:{2}/{3}, weighted:{4}'.format(total['loss'],total['count']['correct'],total['count']['num'],total['count']['weighted']/160))
+			for cla in total:
+				for t in total[cla]:
+					total[cla][t]
 
 	
 
 def eval(model,data_set,criterion,device,acc_best,now,args):
-	total={'loss_relation':0,'loss_type':0,'count':0,'num':0,'acc':0}
-	w = [1.0/16,1.0/15,1.0/5]
+	total={}
+	
 	for i,data in enumerate(data_set):
 		with torch.no_grad():
 			#
 			data = convert(data,device)
-			out = model(data['query'],data['length'])
-
-			loss = criterion(F.log_softmax(out[0],dim=1),data['label_relation']) 
-			total['loss_relation'] += loss.cpu().detach()
-
-			loss = criterion(F.log_softmax(out[1],dim=1),data['label_type'])
-			total['loss_type'] += loss.cpu().detach()
-			total['num'] += out[0].shape[0]
-
-			pred = (out[0].topk(1)[1]*(1+out[1].topk(1)[1])).view(-1)
-			total['count'] += (pred == data['label']).sum()
-			sample_weight = [w[i] for i in pred]
-			total['acc'] += metrics.accuracy_score(data['label'].tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
-		
-	print(i,' test loss(relation):{0} loss(type):{1} acc:{2}/{3},weighted:{4}'.format(total['loss_relation'],total['loss_type'],total['count'],total['num'],total['acc']/len(data_set)))
+			loss,out = model(data['query'],data['length'],data['label'])
+			
+			for cla in out:
+				if(cla not in total):
+					total[cla]={}
+				for t in out[cla]:
+					try:
+						total[cla][t] += out[cla][t]
+					except:
+						total[cla][t] = out[cla][t]
+	
+	print(i,'test loss:{0}  acc:{2}/{3}, weighted:{4}'.format(total['loss'],total['count']['correct'],total['count']['num'],total['count']['weighted']/len(data_set)))	
+	print('-'*10)
 	
 	check = {
 			'args':args,
@@ -128,9 +125,9 @@ def eval(model,data_set,criterion,device,acc_best,now,args):
 			}
 	torch.save(check, './saved_models/{0}/step_{1}.pkl'.format(args.save,now))
 
-	if(total['acc']>acc_best):
+	if(total['count']['weighted']>acc_best):
 		torch.save(check, './saved_models/{0}/best.pkl'.format(args.save))
-		acc_best = total['acc']
+		acc_best = total['count']['weighted']
 	
 	return acc_best
 		
@@ -154,6 +151,7 @@ def main():
 	parser.add_argument('--epoch', default= 10, type=int)
 
 	parser.add_argument('--model', required=True)
+	parser.add_argument('--pred', required=True)
 	parser.add_argument('--save', required=True)
 	
 	args = parser.parse_args()

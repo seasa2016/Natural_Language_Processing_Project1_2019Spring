@@ -2,6 +2,17 @@ import torch
 import torch.nn as nn
 
 
+w = [1.0/16,1.0/15,1.0/5]
+def count(pred,label)
+    total = {}
+    
+    total['num'] = pred.shape[0]
+    total['correct'] = (pred == label).sum()
+    sample_weight = [w[i] for i in pred]
+    total['weighted'] = metrics.accuracy_score(label.tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
+
+    return total
+
 class Linear_two_class(nn.Module):
     def __init__(self,args):
         super(Linear_two_class,self).__init__()
@@ -27,20 +38,16 @@ class Linear_two_class(nn.Module):
             #return loss and acc
             total = {'loss':{},'count':{}}
             
-            loss = self.criterion(F.log_softmax(out_1,dim=1),data['label_relation']) 
+            loss = self.criterion(F.log_softmax(out_1,dim=1),label[0]) 
             total['loss']['relation'] = loss.cpu().detach()
             total_loss = loss
 
-            loss = self.criterion(F.log_softmax(out_2,dim=1),data['label_type']) 
+            loss = self.criterion(F.log_softmax(out_2,dim=1),label[1]) 
             total['loss']['type'] += loss.cpu().detach()
             total_loss += loss
             
-            total['count']['num'] = out_1.shape[0]
+            total['count'] = count(pred,label[-1])
             
-            total['count']['correct'] = (pred == data['label']).sum()
-            sample_weight = [self.w[i] for i in pred]
-            total['count']['weighted'] = metrics.accuracy_score(data['label'].tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
-
             return total_loss,total
 
 class Linear_two_regression(nn.Module):
@@ -52,7 +59,6 @@ class Linear_two_regression(nn.Module):
         self.linear2_2 = nn.Linear(self.hidden_dim,1)
 
         self.criterion = nn.BCEWithLogitsLoss()
-        self.w = [1.0/16,1.0/15,1.0/5]
         
         self.threshold1 = 0.5
         self.threshold2 = 0.5
@@ -70,30 +76,27 @@ class Linear_two_regression(nn.Module):
             #return loss and acc
             total = {'loss':{},'count':{}}
             
-            loss = self.criterion(out_1,data['label_relation']) 
+            loss = self.criterion(out_1,label[0]) 
             total['loss']['relation'] = loss.cpu().detach()
             total_loss = loss
 
-            loss = self.criterion(out_2,data['label_type']) 
+            #drop out for unrelated data
+            loss = label[0].float()*self.criterion(out_2,label[1]) 
             total['loss']['type'] += loss.cpu().detach()
             total_loss += loss
             
-            total['count']['num'] = out_1.shape[0]
-            total['count']['correct'] = (pred == data['label']).sum()
-            sample_weight = [self.w[i] for i in pred]
-            total['count']['weighted'] = metrics.accuracy_score(data['label'].tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
-
+            total['count'] = count(pred,label[-1])
+            
             return total_loss,total
 
-class Linear_two_class(nn.Module):
+class Linear_three_class(nn.Module):
     def __init__(self,args):
-        super(Linear_two_class,self).__init__()
+        super(Linear_three_class,self).__init__()
 
         self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
         self.linear2 = nn.Linear(self.hidden_dim,3)
 
         self.criterion = nn.CrossEntropyLoss()
-        self.w = [1.0/16,1.0/15,1.0/5]
     def forward(self,x,label=None):
         out = self.linear1(x)
         
@@ -107,16 +110,14 @@ class Linear_two_class(nn.Module):
             #return loss and acc
             total = {'loss':{},'count':{}}
             
-            loss = self.criterion(out,data['label_relation']) 
+            loss = self.criterion(out,label[-1]) 
             total['loss']['total'] = loss.cpu().detach()
             total_loss = loss
             
-            total['count']['num'] = out.shape[0]
-            total['count']['correct'] = (pred == data['label']).sum()
-            sample_weight = [self.w[i] for i in pred]
-            total['count']['weighted'] = metrics.accuracy_score(data['label'].tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
-
+            total['count'] = count(pred,label[-1])
+            
             return total_loss,total
+
 class Base(nn.Module):
     def __init__(self,args):
         super(Base, self).__init__()

@@ -15,12 +15,7 @@ class siamese(Base):
         self.ln_embeds = nn.LayerNorm(args.embeds_dim)
         self.rnn = nn.LSTM(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
 
-
-        self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
-        self.linear2_1 = nn.Linear(self.hidden_dim,2)
-        self.linear2_2 = nn.Linear(self.hidden_dim,2)
-
-    def forward(self, querys,lengths):
+    def forward(self, querys,lengths,label=None):
         def pack(seq,seq_length):
             sorted_seq_lengths, indices = torch.sort(seq_length, descending=True)
             _, desorted_indices = torch.sort(indices, descending=False)
@@ -74,10 +69,8 @@ class siamese(Base):
         
         query_result = torch.cat([query_result[0],query_result[1]],dim=1)
         
-        out = self.linear1(query_result)
-        
-        out_1 = self.linear2_1(F.relu(out))
-        out_2 = self.linear2_2(F.relu(out))
-        return [out_1,out_2]
+        out = self.linear(query_result,label=label)
+
+        return out
 
 

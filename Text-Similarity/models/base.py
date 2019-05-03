@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sklearn import metrics
+import numpy as np
 
 w = [1.0/16,1.0/15,1.0/5]
 def count(pred,label):
@@ -148,8 +149,8 @@ class Base(nn.Module):
 		if(self.args.embed_type == 'glove'):
 			pass
 		elif(self.args.embed_type == 'fasttext'):
-			
-			with open('./data/embedding/glove.6B.100d.txt') as f:
+			with open('./data/embedding/cc.zh.300.vec') as f:
+				f.readline()
 				arr = np.zeros((self.word_emb.weight.shape[0],self.word_emb.weight.shape[1]),dtype=np.float32)
 				for i,line in enumerate(f):
 					for j,num in enumerate(line.strip().split()[1:]):

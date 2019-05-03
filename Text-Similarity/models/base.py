@@ -37,7 +37,7 @@ class Linear_two_class(nn.Module):
 		pred = (out_1.topk(1)[1]*(1+out_2.topk(1)[1])).view(-1)
 		if(label is None):
 			#return predict output
-			return pred
+			return pred,[out_1,out_2]
 
 		else:
 			#return loss and acc
@@ -77,7 +77,7 @@ class Linear_two_regression(nn.Module):
 		pred = ( (out_1>self.threshold1).long()*(1+(out_2>self.threshold2).long()) ).view(-1)
 		if(label is None):
 			#return predict output
-			return pred
+			return pred,[out_1,out_2]
 		else:
 			#return loss and acc
 			total = {'loss':{},'count':{}}
@@ -112,7 +112,7 @@ class Linear_three_class(nn.Module):
 		pred = out.topk(1)[1].view(-1)
 		if(label is None):
 			#return predict output
-			return pred
+			return pred,[out]
 		else:
 			#return loss and acc
 			total = {'loss':{},'count':{}}

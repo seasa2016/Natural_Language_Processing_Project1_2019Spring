@@ -66,15 +66,15 @@ class Linear_two_regression(nn.Module):
 
 		self.criterion = nn.BCEWithLogitsLoss(reduction=None)
 		
-		self.threshold1 = 0.5
-		self.threshold2 = 0.5
+		self.threshold1 = 0.7
+		self.threshold2 = 0.8
 
 	def forward(self,x,label=None):
 		out = self.linear1(x)
 		out_1 = self.linear2_1(F.relu(out))
 		out_2 = self.linear2_2(F.relu(out))
 				
-		pred = ( (out_1>self.threshold1).long()*(1+(out_2>self.threshold2).long()) ).view(-1)
+		pred = ( (out_1.sigmoid()>self.threshold1).long()*(1+(out_2.sigmoid()>self.threshold2).long()) ).view(-1)
 		if(label is None):
 			#return predict output
 			return pred,[out_1,out_2]
@@ -102,11 +102,12 @@ class Linear_three_class(nn.Module):
 
 		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
 		self.linear2 = nn.Linear(self.hidden_dim,3)
+		self.dropout = nn.Dropout()
 
 		self.criterion = nn.CrossEntropyLoss()
 	def forward(self,x,label=None):
 		out = self.linear1(x)
-		
+		out	= self.dropout(out)
 		out = self.linear2(F.relu(out))
 		
 		pred = out.topk(1)[1].view(-1)

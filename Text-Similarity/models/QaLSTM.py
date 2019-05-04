@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as f
 
 from .base import Base
-from Attention import Luong,Bahdanau
+from .Attention import Luong,Bahdanau
 
 import math
 
@@ -18,10 +18,10 @@ class qalstm(Base):
         
         self.rnn = nn.LSTM(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
 
-        if(args.attention == 'Luong'):
+        if(args.attention == 'luong'):
             self.attention = Luong(args)
 
-        elif(args.attention == 'Bahdanau'):
+        elif(args.attention == 'bahdanau'):
             self.attention = Bahdanau(args)
         else:
             raise ValueError('no this attention')

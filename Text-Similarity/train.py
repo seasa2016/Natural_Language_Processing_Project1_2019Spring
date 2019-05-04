@@ -12,6 +12,7 @@ from torch.utils.data import Dataset,DataLoader
 from torchvision import transforms, utils
 
 from models.Siamese import siamese
+from models.QaLSTM import qalstm
 
 def get_data(train_file,eval_file,batch_size,pred,maxlen):
 	train_dataset = itemDataset( file_name=train_file,mode='train',pred=pred,maxlen=maxlen)
@@ -49,6 +50,8 @@ def process(args):
 	print("setting model")
 	if(args.model=='siamese'):
 		model = siamese(args)
+	elif(args.model=='qalstm'):
+		model = qalstm(args)
 	model = model.to(device=device)
 
 	print(model)
@@ -150,6 +153,7 @@ def main():
 
 	parser.add_argument('--data', default='./data/all_no_embedding/', type=str)
 	parser.add_argument('--maxlen', default= 128, type=int)
+	parser.add_argument('--attention', default='luong',type=str)
 
 	parser.add_argument('--model', required=True)
 	parser.add_argument('--pred', required=True)

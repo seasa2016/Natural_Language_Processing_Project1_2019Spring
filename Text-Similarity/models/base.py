@@ -66,15 +66,15 @@ class Linear_two_regression(nn.Module):
 
 		self.criterion = nn.BCEWithLogitsLoss(reduction=None)
 		
-		self.threshold1 = 0.5
-		self.threshold2 = 0.5
+		self.threshold1 = 0.7
+		self.threshold2 = 0.8
 
 	def forward(self,x,label=None):
 		out = self.linear1(x)
 		out_1 = self.linear2_1(F.relu(out))
 		out_2 = self.linear2_2(F.relu(out))
 				
-		pred = ( (out_1>self.threshold1).long()*(1+(out_2>self.threshold2).long()) ).view(-1)
+		pred = ( (out_1.sigmoid()>self.threshold1).long()*(1+(out_2.sigmoid()>self.threshold2).long()) ).view(-1)
 		if(label is None):
 			#return predict output
 			return pred,[out_1,out_2]

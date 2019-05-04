@@ -55,31 +55,6 @@ class qalstm(Base):
 
             return desorted_res,state
             
-        def feat_extract(output,length,mask):
-            """
-            answer_output: batch*sentence*feat_len
-            query_output:  batch*sentence*feat_len
-            """
-            query_length = query_length.float()
-            answer_length = answer_length.float()
-
-            query_length = query_length.view(-1,1)
-            if(self.batch_first):
-                query_output = query_output.sum(dim=1)
-            else:
-                query_output = query_output.sum(dim=0)
-                answer_output = answer_output.transpose(0,1) 
-            query_normal = query_output.div(query_length).div(math.sqrt(float(self.hidden_dim))).unsqueeze(2)		# batch*feat_len*1
-
-            #get the attention
-            attn_weight = answer_output.bmm(query_normal).squeeze(2)		 #batch*sentence*1
-            #perform mask for the padding data
-            attn_weight[mask] = -1e8
-            attn_weight = attn_weight.softmax(dim=-1).unsqueeze(2)	   #batch*sentence*1
-
-            answer_extract = (answer_output.transpose(1,2)).bmm(attn_weight).squeeze(2)
-
-            return query_normal.squeeze(2),answer_extract
         
         query_embs = [self.word_emb(querys[0]),self.word_emb(querys[1])]
         masks = [querys[0].eq(0),querys[1].eq(0)]
@@ -89,7 +64,7 @@ class qalstm(Base):
             packed_inputs,desorted_indices = pack(query_emb,length)
             res, state = self.rnn(packed_inputs)
             query_res,_ = unpack(res, state,desorted_indices)
-            query_result.append(feat_extract(query_res,length.int(),mask))
+            query_result.append(query_res)
         
         """
         Attention part

@@ -49,13 +49,6 @@ class BiMPM(nn.Module):
             bidirectional=True,
             batch_first=True
         )
-
-        # ----- Prediction Layer -----
-        self.pred_fc1 = nn.Linear(self.args.hidden_size * 4, self.args.hidden_size * 2)
-        self.pred_fc2 = nn.Linear(self.args.hidden_size * 2, self.args.class_size)
-
-        self.reset_parameters()
-
     def reset_parameters(self):
         # ----- Word Representation Layer -----
         nn.init.uniform(self.char_emb.weight, -0.005, 0.005)
@@ -97,17 +90,11 @@ class BiMPM(nn.Module):
         nn.init.orthogonal(self.aggregation_LSTM.weight_hh_l0_reverse)
         nn.init.constant(self.aggregation_LSTM.bias_hh_l0_reverse, val=0)
 
-        # ----- Prediction Layer ----
-        nn.init.uniform(self.pred_fc1.weight, -0.005, 0.005)
-        nn.init.constant(self.pred_fc1.bias, val=0)
-
-        nn.init.uniform(self.pred_fc2.weight, -0.005, 0.005)
-        nn.init.constant(self.pred_fc2.bias, val=0)
 
     def dropout(self, v):
         return F.dropout(v, p=self.args.dropout, training=self.training)
 
-    def forward(self, **kwargs):
+    def forward(self, query,label):
         # ----- Matching Layer -----
         def mp_matching_func(v1, v2, w):
             """
@@ -216,28 +203,8 @@ class BiMPM(nn.Module):
         # ----- Word Representation Layer -----
         # (batch, seq_len) -> (batch, seq_len, word_dim)
 
-        p = self.word_emb(kwargs['p'])
-        h = self.word_emb(kwargs['h'])
-
-        if self.args.use_char_emb:
-            # (batch, seq_len, max_word_len) -> (batch * seq_len, max_word_len)
-            seq_len_p = kwargs['char_p'].size(1)
-            seq_len_h = kwargs['char_h'].size(1)
-
-            char_p = kwargs['char_p'].view(-1, self.args.max_word_len)
-            char_h = kwargs['char_h'].view(-1, self.args.max_word_len)
-
-            # (batch * seq_len, max_word_len, char_dim)-> (1, batch * seq_len, char_hidden_size)
-            _, (char_p, _) = self.char_LSTM(self.char_emb(char_p))
-            _, (char_h, _) = self.char_LSTM(self.char_emb(char_h))
-
-            # (batch, seq_len, char_hidden_size)
-            char_p = char_p.view(-1, seq_len_p, self.args.char_hidden_size)
-            char_h = char_h.view(-1, seq_len_h, self.args.char_hidden_size)
-
-            # (batch, seq_len, word_dim + char_hidden_size)
-            p = torch.cat([p, char_p], dim=-1)
-            h = torch.cat([h, char_h], dim=-1)
+        p = self.word_emb(query[0])
+        h = self.word_emb(query[1])
 
         p = self.dropout(p)
         h = self.dropout(h)
@@ -344,8 +311,6 @@ class BiMPM(nn.Module):
         x = self.dropout(x)
 
         # ----- Prediction Layer -----
-        x = F.tanh(self.pred_fc1(x))
-        x = self.dropout(x)
-        x = self.pred_fc2(x)
+        out = self.linear(x,label=label)
 
         return x

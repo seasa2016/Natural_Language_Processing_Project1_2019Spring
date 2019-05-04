@@ -102,11 +102,12 @@ class Linear_three_class(nn.Module):
 
 		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
 		self.linear2 = nn.Linear(self.hidden_dim,3)
+		self.dropout = nn.Dropout()
 
 		self.criterion = nn.CrossEntropyLoss()
 	def forward(self,x,label=None):
 		out = self.linear1(x)
-		
+		out	= self.dropout(out)
 		out = self.linear2(F.relu(out))
 		
 		pred = out.topk(1)[1].view(-1)

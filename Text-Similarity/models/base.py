@@ -64,7 +64,7 @@ class Linear_two_regression(nn.Module):
 		self.linear2_1 = nn.Linear(self.hidden_dim,1)
 		self.linear2_2 = nn.Linear(self.hidden_dim,1)
 
-		self.criterion = nn.BCEWithLogitsLoss(reduce=False)
+		self.criterion = nn.BCEWithLogitsLoss(reduction=None)
 		
 		self.threshold1 = 0.5
 		self.threshold2 = 0.5

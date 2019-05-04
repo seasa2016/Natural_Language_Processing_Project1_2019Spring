@@ -46,7 +46,7 @@ class Luong(nn.Module):
 
         #get the attention
         attn_weight = query_normals[0].bmm( query_normals[1].transpose(1,2) )		 #batch*length1*length2
-        weight_mask = masks[0].unsqueeze(2).bmm( masks[1].unsqueeze(1) )		 #batch*length1*length2
+        weight_mask = masks[0].float().unsqueeze(2).bmm( masks[1].float().unsqueeze(1) )		 #batch*length1*length2
 
         #perform mask for the padding data
         attn_weight += -1e8*weight_mask.float()

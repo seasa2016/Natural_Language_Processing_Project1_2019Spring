@@ -19,10 +19,10 @@ class qalstm(Base):
         self.rnn = nn.LSTM(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
 
         if(args.attention == 'luong'):
-            self.attention = Luong(args)
+            self.attention = Luong(args.hidden_dim)
 
         elif(args.attention == 'bahdanau'):
-            self.attention = Bahdanau(args)
+            self.attention = Bahdanau(args.hidden_dim)
         else:
             raise ValueError('no this attention')
 
@@ -69,14 +69,14 @@ class qalstm(Base):
         """
         Attention part
         """
-        att_results = self.attention(query_result,masks)
+        att_results = self.attention(query_result,lengths,masks)
         
         """
         Aggregate
         """
         agg_results = [
-            att_results[0].sum(dim=1).div(lengths[0].view(-1,1)),
-            att_results[1].sum(dim=1).div(lengths[1].view(-1,1))
+            att_results[0].sum(dim=1).div(lengths[0].float().view(-1,1)),
+            att_results[1].sum(dim=1).div(lengths[1].float().view(-1,1))
         ]
 
 

@@ -25,11 +25,13 @@ class Linear_two_class(nn.Module):
 		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
 		self.linear2_1 = nn.Linear(self.hidden_dim,2)
 		self.linear2_2 = nn.Linear(self.hidden_dim,2)
+		self.dropout = nn.Dropout()
 
 		self.criterion = nn.KLDivLoss()
 		self.w = [1.0/16,1.0/15,1.0/5]
 	def forward(self,x,label=None):
 		out = self.linear1(x)
+		out	= self.dropout(out)
 		
 		out_1 = self.linear2_1(F.relu(out))
 		out_2 = self.linear2_2(F.relu(out))
@@ -63,6 +65,7 @@ class Linear_two_regression(nn.Module):
 		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
 		self.linear2_1 = nn.Linear(self.hidden_dim,1)
 		self.linear2_2 = nn.Linear(self.hidden_dim,1)
+		self.dropout = nn.Dropout()
 
 		self.criterion = nn.BCEWithLogitsLoss(reduction=None)
 		
@@ -71,6 +74,7 @@ class Linear_two_regression(nn.Module):
 
 	def forward(self,x,label=None):
 		out = self.linear1(x)
+		out	= self.dropout(out)
 		out_1 = self.linear2_1(F.relu(out))
 		out_2 = self.linear2_2(F.relu(out))
 				
@@ -131,7 +135,7 @@ class Base(nn.Module):
 		super(Base, self).__init__()
 		self.args = args
 
-		self.word_emb =nn.Embedding(args.word_num,args.embeds_dim)
+		self.word_emb =nn.Embedding(args.word_num,args.embeds_dim,padding_idx=0)
 
 		if(args.mode == 'pretrain'):
 			self.load()

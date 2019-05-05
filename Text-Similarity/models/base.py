@@ -16,9 +16,9 @@ def count(pred,label):
 
 	return total
 
-class Linear_two_class(nn.Module):
+class Two_class(nn.Module):
 	def __init__(self,args):
-		super(Linear_two_class,self).__init__()
+		super(Two_class,self).__init__()
 		
 
 		self.hidden_dim = args.hidden_dim
@@ -57,9 +57,9 @@ class Linear_two_class(nn.Module):
 			
 			return total_loss,total
 
-class Linear_two_regression(nn.Module):
+class Two_regression(nn.Module):
 	def __init__(self,args):
-		super(Linear_two_regression,self).__init__()
+		super(Two_regression,self).__init__()
 		self.hidden_dim = args.hidden_dim
 
 		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
@@ -99,9 +99,9 @@ class Linear_two_regression(nn.Module):
 			
 			return total_loss,total
 
-class Linear_three_class(nn.Module):
+class Three_class(nn.Module):
 	def __init__(self,args):
-		super(Linear_three_class,self).__init__()
+		super(Three_class,self).__init__()
 		self.hidden_dim = args.hidden_dim
 
 		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
@@ -142,12 +142,12 @@ class Base(nn.Module):
 			self.word_emb.weight.requires_grad = False
 			print("here",self.word_emb.weight.requires_grad)
 
-		if(args.pred=='linear_two_class'):
-			self.linear = Linear_two_class(args)
-		elif(args.pred=='linear_two_regression'):
-			self.linear = Linear_two_regression(args)
-		elif(args.pred=='linear_three_class'):
-			self.linear = Linear_three_class(args)
+		if(args.pred=='Two_class'):
+			self.linear = Two_class(args)
+		elif(args.pred=='Two_regression'):
+			self.linear = Two_regression(args)
+		elif(args.pred=='Three_class'):
+			self.linear = Three_class(args)
 
 
 	def load(self):

@@ -48,18 +48,28 @@ class itemDataset(Dataset):
 				query = [query[0][:maxlen],query[1][:maxlen]]
 				length = [len(query[0]),len(query[1])]
 
+				if(length[0]==0 or length[1]==0):
+					continue
+				
 				if(label=='disagreed'):
 					l = disagreed
 				elif(label=='agreed'):
 					l =agreed
 				elif(label=='unrelated'):
 					l = unrelated
-
+				
 				self.data.append({
 					'query':query,
 					'length':length,
 					'label':l
 				})
+				if(label=='agreed'):
+					self.data.append({
+						'query':query[::-1],
+						'length':length[::-1],
+						'label':l
+					})
+
 				
 				
 		self.transform = transform

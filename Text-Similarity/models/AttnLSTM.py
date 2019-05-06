@@ -16,13 +16,13 @@ class attnlstm(Base):
         self.num_layer = args.num_layer
         self.batch_first = args.batch_first
         
-        self.rnn = nn.LSTM(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
+        self.rnn = nn.GRU(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
 
         if(args.attention == 'luong'):
-            self.attention = Luong(args.hidden_dim)
+            self.attention = Luong(args.hidden_dim,args.hidden_dim)
 
         elif(args.attention == 'bahdanau'):
-            self.attention = Bahdanau(args.hidden_dim)
+            self.attention = Bahdanau(2*args.hidden_dim,args.hidden_dim)
         else:
             raise ValueError('no this attention')
 
@@ -85,7 +85,7 @@ class attnlstm(Base):
             query_res,_ = unpack(res, state,desorted_indices)
             query_result.append(feat_extract(query_res,length.int(),mask))
         
-        query_result = torch.cat([query_result[0],query_result[1]],dim=-1)
+        result = torch.cat([query_result[0],query_result[1]],dim=-1)
 
 
         out = self.linear(result,label=label)

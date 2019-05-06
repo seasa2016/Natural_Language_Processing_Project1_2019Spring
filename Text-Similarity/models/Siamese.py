@@ -12,7 +12,7 @@ class siamese(Base):
 		self.num_layer = args.num_layer
 		self.batch_first = args.batch_first
 		
-		self.rnn = nn.LSTM(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
+		self.rnn = nn.GRU(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
 
 	def forward(self, querys,lengths,label=None):
 		def pack(seq,seq_length):

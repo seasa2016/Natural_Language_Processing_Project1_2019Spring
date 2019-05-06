@@ -19,10 +19,10 @@ class qalstm(Base):
         self.rnn = nn.LSTM(self.embeds_dim, self.hidden_dim, batch_first=self.batch_first , bidirectional=True, num_layers=self.num_layer)
 
         if(args.attention == 'luong'):
-            self.attention = Luong(args.hidden_dim)
+            self.attention = Luong(args.hidden_dim,args.hidden_dim)
 
         elif(args.attention == 'bahdanau'):
-            self.attention = Bahdanau(args.hidden_dim)
+            self.attention = Bahdanau(8*args.hidden_dim,args.hidden_dim)
         else:
             raise ValueError('no this attention')
 

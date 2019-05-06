@@ -4,12 +4,13 @@ import math
 
 
 class Bahdanau(nn.Module):
-    def __init__(self,hidden_dim):
+    def __init__(self,in_dim,out_dim):
         super(Bahdanau,self).__init__()
-        self.hidden_dim = hidden_dim
+        self.in_dim = in_dim
+        self.out_dim = in_dim
 
-        self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
-        self.linear2 = nn.Linear(self.hidden_dim,1)
+        self.linear1 = nn.Linear(self.in_dim,self.out_dim)
+        self.linear2 = nn.Linear(self.out_dim,1)
 
     def forward(self,querys,lengths,masks):
         shapes = [querys[0].shape,querys[1].shape]
@@ -33,9 +34,9 @@ class Bahdanau(nn.Module):
 
 
 class Luong(nn.Module):
-    def __init__(self,hidden_dim):
+    def __init__(self,in_dim,out_dim):
         super(Luong,self).__init__()
-        self.hidden_dim = hidden_dim
+        self.hidden_dim = in_dim
 
     def forward(self,querys,lengths,masks):
         lengths = [lengths[0].float(),lengths[1].float()]

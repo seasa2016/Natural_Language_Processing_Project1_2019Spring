@@ -60,7 +60,8 @@ def process(args):
 
 	print(model)
 	optimizer = optim.Adam(model.parameters(),lr=args.learning_rate)
-	
+	scheduler = optim.lr_scheduler.StepLR(optimizer, 3, gamma=0.5)	
+
 
 	acc_best = 000
 	print("start training")
@@ -71,6 +72,7 @@ def process(args):
 		train(model,dataloader['train'],optimizer,device)
 		model.eval()
 		acc_best = eval(model,dataloader['eval'],device,acc_best,now,args)
+		scheduler.step()
 
 def train(model,data_set,optimizer,device):
 	w = [1.0/16,1.0/15,1.0/5]
@@ -157,7 +159,7 @@ def main():
 
 	parser.add_argument('--data', default='./data/all_no_embedding/', type=str)
 	parser.add_argument('--maxlen', default= 128, type=int)
-	parser.add_argument('--attention', default='bahdanau',type=str)
+	parser.add_argument('--attention', default='luong',type=str)
 
 	parser.add_argument('--model', required=True)
 	parser.add_argument('--pred', required=True)

@@ -57,9 +57,7 @@ class siamese(Base):
 
 				#result[0].append( torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]], dim=-1) )
 			
-			result.append( 
-			torch.stack( [output[i].sum(dim=0).div( length[i] ) for i in range(length.shape[0])] )
-			)
+			result.append( output.sum(dim=1).div(lengths[0].float().view(-1,1))	)
 			result.append( output.max(dim=1)[0] )
 
 			return torch.cat( result , dim=-1 )

@@ -10,7 +10,7 @@ import sys
 import ast
 
 class itemDataset(Dataset):
-	def __init__(self,file_name,mode='train',pred='linear_two_class',maxlen=128,transform=True):
+	def __init__(self,file_name,mode='train',pred='two_class',maxlen=128,transform=True):
 		self.mode = mode
 		self.data = []
 		self.pred = pred
@@ -28,18 +28,20 @@ class itemDataset(Dataset):
 				})
 				
 		elif(mode=='train' or mode=='eval'):
-			if(pred=='linear_two_class'):
+			if(pred=='two_class'):
 				disagreed = [[.0,1.0],[.0,1.0],2]
 				agreed = [[.0,1.0],[1.0,.0],1]
 				unrelated = [[1.0,.0],[.0,.0],0]
-			elif(pred=='linear_two_regression'):
+			elif(pred=='two_regression'):
 				disagreed = [[1],[1],2]
 				agreed = [[1],[0],1]
 				unrelated = [[0],[0],0]
-			elif(pred=='linear_three_class'):
+			elif(pred=='three_class'):
 				disagreed = [2]
 				agreed = [1]
 				unrelated = [0]
+			else:
+				raise ValueError('no this type {0}'.format(pred))
 
 			for query,label in zip(temp['query'],temp['label']):
 				query = ast.literal_eval(query)
@@ -75,10 +77,10 @@ class itemDataset(Dataset):
 			
 			if('label' in sample):
 				out['label']=[]
-				if(self.pred=='linear_two_class' or self.pred=='linear_two_regression'):
+				if(self.pred=='two_class' or self.pred=='two_regression'):
 					out['label'].append(torch.tensor(sample['label'][0],dtype=torch.float))
 					out['label'].append(torch.tensor(sample['label'][1],dtype=torch.float))
-				elif(self.pred=='linear_three_class'):
+				elif(self.pred=='three_class'):
 					pass
 				out['label'].append(torch.tensor(sample['label'][-1],dtype=torch.long))
 		return out

@@ -16,11 +16,11 @@ class Bahdanau(nn.Module):
 
         query_expand = torch.cat([
             querys[0].repeat(1,shapes[1][1],1),
-            querys[1].repeat(1,1,shapes[0][1]).view(shapes[1][0],shapes[1][1]*2,shapes[1][2])
+            querys[1].repeat(1,1,shapes[0][1]).view(shapes[1][0],shapes[1][1]*shapes[0][1],shapes[1][2])
         ],dim=-1)
 
         attn_weight = self.linear2( self.linear1( query_expand ).tanh() ).view(-1,shapes[0][1],shapes[1][1])
-        weight_mask = masks[0].unsqueeze(2).bmm( masks[1].unsqueeze(1) )		 #batch*length1*length2
+        weight_mask = masks[0].float().unsqueeze(2).bmm( masks[1].float().unsqueeze(1) )		 #batch*length1*length2
 
         #perform mask for the padding data
         attn_weight += -1e8*weight_mask.float()

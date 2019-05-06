@@ -148,12 +148,12 @@ def main():
 	parser.add_argument('--input_size', default=49527, type=int)
 	parser.add_argument('--batch_first', default=True, type=bool)
 	parser.add_argument('--mode' , default= 'train', type=str)
-	parser.add_argument('--epoch', default= 10, type=int)
+	parser.add_argument('--epoch', default= 15, type=int)
 
 
 	parser.add_argument('--data', default='./data/all_no_embedding/', type=str)
 	parser.add_argument('--maxlen', default= 128, type=int)
-	parser.add_argument('--attention', default='luong',type=str)
+	parser.add_argument('--attention', default='bahdanau',type=str)
 
 	parser.add_argument('--model', required=True)
 	parser.add_argument('--pred', required=True)

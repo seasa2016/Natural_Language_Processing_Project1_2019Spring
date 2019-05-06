@@ -67,7 +67,7 @@ class Two_regression(nn.Module):
 		self.linear2_2 = nn.Linear(self.hidden_dim,1)
 		self.dropout = nn.Dropout()
 
-		self.criterion = nn.BCEWithLogitsLoss(reduction=None)
+		self.criterion = nn.BCEWithLogitsLoss(reduction='none')
 		
 		self.threshold1 = 0.7
 		self.threshold2 = 0.8
@@ -85,7 +85,6 @@ class Two_regression(nn.Module):
 		else:
 			#return loss and acc
 			total = {'loss':{},'count':{}}
-			
 			loss = self.criterion(out_1,label[0]).mean()
 			total['loss']['relation'] = loss.cpu().detach().item()
 			total_loss = loss
@@ -142,11 +141,11 @@ class Base(nn.Module):
 			self.word_emb.weight.requires_grad = False
 			print("here",self.word_emb.weight.requires_grad)
 
-		if(args.pred=='Two_class'):
+		if(args.pred=='two_class'):
 			self.linear = Two_class(args)
-		elif(args.pred=='Two_regression'):
+		elif(args.pred=='two_regression'):
 			self.linear = Two_regression(args)
-		elif(args.pred=='Three_class'):
+		elif(args.pred=='three_class'):
 			self.linear = Three_class(args)
 
 

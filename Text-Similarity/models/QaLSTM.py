@@ -52,6 +52,26 @@ class qalstm(Base):
                 desorted_res = padded_res[:, desorted_indices]
 
             return desorted_res,state
+		def feat_extract(output,length,mask):
+			"""
+			here we check for several output variant
+			1.largest
+			2.last
+			3.mean
+			"""
+			if( self.batch_first == False ):
+				output = output.transpose(0,1) 
+
+			result = []
+
+			#result.append( output.sum(dim=1) )
+
+				#result[0].append( torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]], dim=-1) )
+			
+			result.append( output.sum(dim=1).div(lengths[0].float().view(-1,1))	)
+			result.append( output.max(dim=1)[0] )
+
+			return torch.cat( result , dim=-1 )
             
         
         query_embs = [self.word_emb(querys[0]),self.word_emb(querys[1])]
@@ -72,14 +92,11 @@ class qalstm(Base):
         """
         Aggregate
         """
-        agg_results = [
-            att_results[0].sum(dim=1).div(lengths[0].float().view(-1,1)),
-            att_results[1].sum(dim=1).div(lengths[1].float().view(-1,1))
-        ]
-
-
+        agg_results = []
+        for att_result,length,mask in zip(att_results,lengths,masks):
+            agg_results.append(feat_extract(att_result,length.int(),mask))
+         
         result = torch.cat([agg_results[0],agg_results[1]],dim=1)
-
 
         out = self.linear(result,label=label)
 

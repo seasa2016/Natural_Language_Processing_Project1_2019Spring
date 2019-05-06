@@ -30,7 +30,6 @@ class qalstm(Base):
         def pack(seq,seq_length):
             sorted_seq_lengths, indices = torch.sort(seq_length, descending=True)
             _, desorted_indices = torch.sort(indices, descending=False)
-
             if self.batch_first:
                 seq = seq[indices]
             else:
@@ -38,7 +37,6 @@ class qalstm(Base):
             packed_inputs = nn.utils.rnn.pack_padded_sequence(seq,
                                                             sorted_seq_lengths.cpu().numpy(),
                                                             batch_first=self.batch_first)
-
             return packed_inputs,desorted_indices
 
         def unpack(res, state,desorted_indices):

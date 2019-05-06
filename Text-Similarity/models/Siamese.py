@@ -43,18 +43,25 @@ class siamese(Base):
 
         def feat_extract(output,length,mask):
             """
-            answer_output: batch*sentence*feat_len
-            query_output:  batch*sentence*feat_len
-            for simple rnn, we just take the output from 
+            here we check for several output variant
+            1.largest
+            2.last
+            3.mean
             """
             if( self.batch_first == False ):
                 output = output.transpose(0,1) 
 
-            output = [torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim] , 
-                                        output[i][0][self.hidden_dim:]] , dim=-1 ) for i in range(length.shape[0])]
-            output = torch.stack(output,dim=0)
+            result = []
 
-            return output
+            result.append(torch.stack(
+                        [torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]] , dim=-1 ) for i in range(length.shape[0])],
+                        dim=0)
+                        )
+
+            result.append( output.max(dim=1) )
+            result.append( output.mean(dim=1) )
+
+            return torch.cat( result , dim=-1 )
 
         query_embs = [self.word_emb(querys[0]),self.word_emb(querys[1])]
         masks = [querys[0].eq(0),querys[1].eq(0)]

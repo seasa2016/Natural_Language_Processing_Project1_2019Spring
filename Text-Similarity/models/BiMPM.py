@@ -1,39 +1,25 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from .base import Base
 
 
-class BiMPM(nn.Module):
+class BiMPM(Base):
     def __init__(self, args, data):
-        super(BiMPM, self).__init__()
+        super(BiMPM, self).__init__(args)
 
-        self.args = args
-        self.d = self.args.word_dim + int(self.args.use_char_emb) * self.args.char_hidden_size
-        self.l = self.args.num_perspective
-
-        # ----- Word Representation Layer -----
-        self.char_emb = nn.Embedding(args.char_vocab_size, args.char_dim, padding_idx=0)
-
-        self.word_emb = nn.Embedding(args.word_vocab_size, args.word_dim)
-        # initialize word embedding with GloVe or Other pre-trained word embedding
-        self.word_emb.weight.data.copy_(data.TEXT.vocab.vectors)
-        # no fine-tuning for word vectors
-        self.word_emb.weight.requires_grad = False
-
-        self.char_LSTM = nn.LSTM(
-            input_size=self.args.char_dim,
-            hidden_size=self.args.char_hidden_size,
-            num_layers=1,
-            bidirectional=False,
-            batch_first=True)
+        self.l = 10
+        self.embeds_dim = args.embeds_dim
+        self.hidden_dim = args.hidden_dim
+        self.batch_first = args.batch_first
 
         # ----- Context Representation Layer -----
         self.context_LSTM = nn.LSTM(
-            input_size=self.d,
-            hidden_size=self.args.hidden_size,
+            input_size=self.embeds_dim,
+            hidden_size=self.args.hidden_dim,
             num_layers=1,
             bidirectional=True,
-            batch_first=True
+            batch_first=self.batch_first
         )
 
         # ----- Matching Layer -----
@@ -57,11 +43,6 @@ class BiMPM(nn.Module):
 
         # <unk> vectors is randomly initialized
         nn.init.uniform(self.word_emb.weight.data[0], -0.1, 0.1)
-
-        nn.init.kaiming_normal(self.char_LSTM.weight_ih_l0)
-        nn.init.constant(self.char_LSTM.bias_ih_l0, val=0)
-        nn.init.orthogonal(self.char_LSTM.weight_hh_l0)
-        nn.init.constant(self.char_LSTM.bias_hh_l0, val=0)
 
         # ----- Context Representation Layer -----
         nn.init.kaiming_normal(self.context_LSTM.weight_ih_l0)

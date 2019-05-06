@@ -15,14 +15,14 @@ def count(pred,label):
 	total['weighted'] = metrics.accuracy_score(label.tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
 
 	return total
-
+output_product = 12
 class Two_class(nn.Module):
 	def __init__(self,args):
 		super(Two_class,self).__init__()
 		
 
 		self.hidden_dim = args.hidden_dim
-		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
+		self.linear1 = nn.Linear(output_product*self.hidden_dim,self.hidden_dim)
 		self.linear2_1 = nn.Linear(self.hidden_dim,2)
 		self.linear2_2 = nn.Linear(self.hidden_dim,2)
 		self.dropout = nn.Dropout()
@@ -62,7 +62,7 @@ class Two_regression(nn.Module):
 		super(Two_regression,self).__init__()
 		self.hidden_dim = args.hidden_dim
 
-		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
+		self.linear1 = nn.Linear(output_product*self.hidden_dim,self.hidden_dim)
 		self.linear2_1 = nn.Linear(self.hidden_dim,1)
 		self.linear2_2 = nn.Linear(self.hidden_dim,1)
 		self.dropout = nn.Dropout()
@@ -103,7 +103,7 @@ class Three_class(nn.Module):
 		super(Three_class,self).__init__()
 		self.hidden_dim = args.hidden_dim
 
-		self.linear1 = nn.Linear(4*self.hidden_dim,self.hidden_dim)
+		self.linear1 = nn.Linear(output_product*self.hidden_dim,self.hidden_dim)
 		self.linear2 = nn.Linear(self.hidden_dim,3)
 		self.dropout = nn.Dropout()
 

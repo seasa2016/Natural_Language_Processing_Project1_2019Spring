@@ -12,6 +12,7 @@ from torch.utils.data import Dataset,DataLoader
 from torchvision import transforms, utils
 
 from models.Siamese import siamese
+from models.QaLSTM import qalstm
 
 def get_data(test_file,batch_size,pred,maxlen):
 	test_dataset = itemDataset( file_name=test_file,mode='test',pred=pred,maxlen=maxlen)
@@ -46,9 +47,11 @@ def process(args,checkpoint):
 	print("setting model and load from pretrain")
 	if(checkpoint['args'].model=='siamese'):
 		model = siamese(checkpoint['args'])
-		model.load_state_dict(checkpoint['model'])
+	elif(checkpoint['args'].model=='qalstm'):
+		model = qalstm(checkpoint['args'])
+	
+	model.load_state_dict(checkpoint['model'])
 	model = model.to(device=device)
-
 
 	print("start testing")
 

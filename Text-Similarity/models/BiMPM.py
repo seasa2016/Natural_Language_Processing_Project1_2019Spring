@@ -4,9 +4,9 @@ import torch.nn.functional as F
 from .base import Base
 
 
-class BiMPM(Base):
+class bimpm(Base):
     def __init__(self, args, data):
-        super(BiMPM, self).__init__(args)
+        super(bimpm, self).__init__(args)
 
         self.l = 10
         self.embeds_dim = args.embeds_dim

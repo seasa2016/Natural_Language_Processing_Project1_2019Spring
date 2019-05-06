@@ -14,6 +14,7 @@ from torchvision import transforms, utils
 from models.Siamese import siamese
 from models.QaLSTM import qalstm
 from models.AttnLSTM import attnlstm
+from models.BiMPM import bimpm
 
 def get_data(train_file,eval_file,batch_size,pred,maxlen):
 	train_dataset = itemDataset( file_name=train_file,mode='train',pred=pred,maxlen=maxlen)
@@ -55,7 +56,9 @@ def process(args):
 		model = qalstm(args)
 	elif(args.model=='attnlstm'):
 		model = attnlstm(args)
-		
+	elif(args.model=='bimpm'):
+		model = bimpm(args)
+
 	model = model.to(device=device)
 
 	print(model)

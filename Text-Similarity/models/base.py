@@ -15,7 +15,7 @@ def count(pred,label):
 	total['weighted'] = metrics.accuracy_score(label.tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
 
 	return total
-output_product = 2*2
+output_product = 16
 class Two_class(nn.Module):
 	def __init__(self,args):
 		super(Two_class,self).__init__()

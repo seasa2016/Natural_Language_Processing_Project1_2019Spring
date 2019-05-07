@@ -57,12 +57,15 @@ class siamese(Base):
 			result = []
 
 			result.append( output.sum(dim=1) )
-				result[0].append( torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]], dim=-1) )
-			
+				
+			result.append( torch.stack(
+			[torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]], dim=-1) for i in range(output.shape[0])]
+			))
+				
 			result.append( output.sum(dim=1).div(lengths[0].float().view(-1,1))	)
 			result.append( output.max(dim=1)[0] )
-			result.append( hidden )
 
+			result.append( torch.cat([hidden[-2],hidden[-1]],dim=-1 ))
 			return torch.cat( result , dim=-1 )
 
 		query_embs = [self.word_emb(querys[0]),self.word_emb(querys[1])]

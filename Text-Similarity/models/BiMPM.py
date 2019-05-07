@@ -35,36 +35,37 @@ class bimpm(Base):
 			bidirectional=True,
 			batch_first=True
 		)
+		self.reset_parameters()
 	def reset_parameters(self):
 		# <unk> vectors is randomly initialized
-		nn.init.uniform(self.word_emb.weight.data[0], -0.1, 0.1)
+		nn.init.uniform_(self.word_emb.weight.data[0], -0.1, 0.1)
 
 		# ----- Context Representation Layer -----
-		nn.init.kaiming_normal(self.context_LSTM.weight_ih_l0)
-		nn.init.constant(self.context_LSTM.bias_ih_l0, val=0)
-		nn.init.orthogonal(self.context_LSTM.weight_hh_l0)
-		nn.init.constant(self.context_LSTM.bias_hh_l0, val=0)
+		nn.init.kaiming_normal_(self.context_LSTM.weight_ih_l0)
+		nn.init.constant_(self.context_LSTM.bias_ih_l0, val=0)
+		nn.init.orthogonal_(self.context_LSTM.weight_hh_l0)
+		nn.init.constant_(self.context_LSTM.bias_hh_l0, val=0)
 
-		nn.init.kaiming_normal(self.context_LSTM.weight_ih_l0_reverse)
-		nn.init.constant(self.context_LSTM.bias_ih_l0_reverse, val=0)
-		nn.init.orthogonal(self.context_LSTM.weight_hh_l0_reverse)
-		nn.init.constant(self.context_LSTM.bias_hh_l0_reverse, val=0)
+		nn.init.kaiming_normal_(self.context_LSTM.weight_ih_l0_reverse)
+		nn.init.constant_(self.context_LSTM.bias_ih_l0_reverse, val=0)
+		nn.init.orthogonal_(self.context_LSTM.weight_hh_l0_reverse)
+		nn.init.constant_(self.context_LSTM.bias_hh_l0_reverse, val=0)
 
 		# ----- Matching Layer -----
 		for i in range(1, 9):
 			w = getattr(self, f'mp_w{i}')
-			nn.init.kaiming_normal(w)
+			nn.init.kaiming_normal_(w)
 
 		# ----- Aggregation Layer -----
-		nn.init.kaiming_normal(self.aggregation_LSTM.weight_ih_l0)
-		nn.init.constant(self.aggregation_LSTM.bias_ih_l0, val=0)
-		nn.init.orthogonal(self.aggregation_LSTM.weight_hh_l0)
-		nn.init.constant(self.aggregation_LSTM.bias_hh_l0, val=0)
+		nn.init.kaiming_normal_(self.aggregation_LSTM.weight_ih_l0)
+		nn.init.constant_(self.aggregation_LSTM.bias_ih_l0, val=0)
+		nn.init.orthogonal_(self.aggregation_LSTM.weight_hh_l0)
+		nn.init.constant_(self.aggregation_LSTM.bias_hh_l0, val=0)
 
-		nn.init.kaiming_normal(self.aggregation_LSTM.weight_ih_l0_reverse)
-		nn.init.constant(self.aggregation_LSTM.bias_ih_l0_reverse, val=0)
-		nn.init.orthogonal(self.aggregation_LSTM.weight_hh_l0_reverse)
-		nn.init.constant(self.aggregation_LSTM.bias_hh_l0_reverse, val=0)
+		nn.init.kaiming_normal_(self.aggregation_LSTM.weight_ih_l0_reverse)
+		nn.init.constant_(self.aggregation_LSTM.bias_ih_l0_reverse, val=0)
+		nn.init.orthogonal_(self.aggregation_LSTM.weight_hh_l0_reverse)
+		nn.init.constant_(self.aggregation_LSTM.bias_hh_l0_reverse, val=0)
 
 
 	def dropout(self, v):

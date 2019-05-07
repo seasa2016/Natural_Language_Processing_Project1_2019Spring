@@ -15,16 +15,16 @@ def count(pred,label):
 	total['weighted'] = metrics.accuracy_score(label.tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
 
 	return total
-output_product = 16
 class Two_class(nn.Module):
-	def __init__(self,args):
+	def __init__(self,lin_dim1,lin_dim2):
 		super(Two_class,self).__init__()
+		self.lin_dim1 = lin_dim1
+		self.lin_dim2 = lin_dim2
 		
 
-		self.hidden_dim = args.hidden_dim
-		self.linear1 = nn.Linear(output_product*self.hidden_dim,self.hidden_dim)
-		self.linear2_1 = nn.Linear(self.hidden_dim,2)
-		self.linear2_2 = nn.Linear(self.hidden_dim,2)
+		self.linear1 = nn.Linear(self.lin_dim1,self.lin_dim2)
+		self.linear2_1 = nn.Linear(self.lin_dim2,2)
+		self.linear2_2 = nn.Linear(self.lin_dim2,2)
 		self.dropout = nn.Dropout()
 
 		self.criterion = nn.KLDivLoss()
@@ -58,13 +58,14 @@ class Two_class(nn.Module):
 			return total_loss,total
 
 class Two_regression(nn.Module):
-	def __init__(self,args):
+	def __init__(self,lin_dim1,lin_dim2):
 		super(Two_regression,self).__init__()
-		self.hidden_dim = args.hidden_dim
+		self.lin_dim1 = lin_dim1
+		self.lin_dim2 = lin_dim2
 
-		self.linear1 = nn.Linear(output_product*self.hidden_dim,self.hidden_dim)
-		self.linear2_1 = nn.Linear(self.hidden_dim,1)
-		self.linear2_2 = nn.Linear(self.hidden_dim,1)
+		self.linear1 = nn.Linear(self.lin_dim1,self.lin_dim2)
+		self.linear2_1 = nn.Linear(self.lin_dim2,1)
+		self.linear2_2 = nn.Linear(self.lin_dim2,1)
 		self.dropout = nn.Dropout()
 
 		self.criterion = nn.BCEWithLogitsLoss(reduction='none')
@@ -99,12 +100,13 @@ class Two_regression(nn.Module):
 			return total_loss,total
 
 class Three_class(nn.Module):
-	def __init__(self,args):
+	def __init__(self,lin_dim1,lin_dim2):
 		super(Three_class,self).__init__()
-		self.hidden_dim = args.hidden_dim
+		self.lin_dim1 = lin_dim1
+		self.lin_dim2 = lin_dim2
 
-		self.linear1 = nn.Linear(output_product*self.hidden_dim,self.hidden_dim)
-		self.linear2 = nn.Linear(self.hidden_dim,3)
+		self.linear1 = nn.Linear(self.lin_dim1,self.lin_dim2)
+		self.linear2 = nn.Linear(self.lin_dim2,3)
 		self.dropout = nn.Dropout()
 
 		self.criterion = nn.CrossEntropyLoss()
@@ -142,11 +144,11 @@ class Base(nn.Module):
 			print("here",self.word_emb.weight.requires_grad)
 
 		if(args.pred=='two_class'):
-			self.linear = Two_class(args)
+			self.linear = Two_class(args.lin_dim1,args.lin_dim2)
 		elif(args.pred=='two_regression'):
-			self.linear = Two_regression(args)
+			self.linear = Two_regression(args.lin_dim1,args.lin_dim2)
 		elif(args.pred=='three_class'):
-			self.linear = Three_class(args)
+			self.linear = Three_class(args.lin_dim1,args.lin_dim2)
 
 
 	def load(self):

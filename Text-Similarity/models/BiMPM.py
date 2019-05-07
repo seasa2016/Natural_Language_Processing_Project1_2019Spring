@@ -6,6 +6,10 @@ from .base import Base
 
 class bimpm(Base):
 	def __init__(self, args):
+		if(not hasattr(args,'lin_dim1')):
+			args.lin_dim1 = args.hidden_dim * 2 *2
+			args.lin_dim2 = args.hidden_dim
+			
 		super(bimpm, self).__init__(args)
 
 		self.l = 10

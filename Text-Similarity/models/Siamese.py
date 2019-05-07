@@ -32,7 +32,10 @@ class siamese(Base):
 		def unpack(res, state,desorted_indices):
 			padded_res,_ = nn.utils.rnn.pad_packed_sequence(res, batch_first=self.batch_first)
 
-			state = [state[i][:,desorted_indices] for i in range(len(state)) ] 
+			if(type(state)==tuple):
+				state = [state[i][:,desorted_indices] for i in range(len(state)) ] 
+			else:
+				state = state[:,desorted_indices]
 
 			if(self.batch_first):
 				desorted_res = padded_res[desorted_indices]
@@ -41,7 +44,7 @@ class siamese(Base):
 
 			return desorted_res,state
 
-		def feat_extract(output,length,mask):
+		def feat_extract(output,hidden,length,mask):
 			"""
 			here we check for several output variant
 			1.largest
@@ -53,12 +56,12 @@ class siamese(Base):
 
 			result = []
 
-			#result.append( output.sum(dim=1) )
-
-				#result[0].append( torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]], dim=-1) )
+			result.append( output.sum(dim=1) )
+				result[0].append( torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]], dim=-1) )
 			
 			result.append( output.sum(dim=1).div(lengths[0].float().view(-1,1))	)
 			result.append( output.max(dim=1)[0] )
+			result.append( hidden )
 
 			return torch.cat( result , dim=-1 )
 
@@ -69,8 +72,8 @@ class siamese(Base):
 		for query_emb,length,mask in zip(query_embs,lengths,masks):
 			packed_inputs,desorted_indices = pack(query_emb,length)
 			res, state = self.rnn(packed_inputs)
-			query_res,_ = unpack(res, state,desorted_indices)
-			query_result.append(feat_extract(query_res,length.int(),mask))
+			query_res,state = unpack(res, state,desorted_indices)
+			query_result.append(feat_extract(query_res,state,length.int(),mask))
 		
 		query_result = torch.cat([query_result[0],query_result[1]],dim=1)
 		

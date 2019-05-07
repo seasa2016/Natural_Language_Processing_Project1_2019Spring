@@ -13,6 +13,7 @@ from torchvision import transforms, utils
 
 from models.Siamese import siamese
 from models.QaLSTM import qalstm
+from models.AttnLSTM import attnlstm
 
 def get_data(test_file,batch_size,pred,maxlen):
 	test_dataset = itemDataset( file_name=test_file,mode='test',pred=pred,maxlen=maxlen)
@@ -49,6 +50,8 @@ def process(args,checkpoint):
 		model = siamese(checkpoint['args'])
 	elif(checkpoint['args'].model=='qalstm'):
 		model = qalstm(checkpoint['args'])
+	elif(checkpoint['args'].model=='attnlstm'):
+		model = attnlstm(checkpoint['args'])
 	
 	model.load_state_dict(checkpoint['model'])
 	model = model.to(device=device)

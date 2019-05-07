@@ -48,6 +48,8 @@ for i in range(10):
 
 		acc = count(pred,labels)
 		
+		print(i,j,acc)
+
 		if(acc>now[2]):
 			now = [i,j,acc]
 		outputs.append([i,j,acc])

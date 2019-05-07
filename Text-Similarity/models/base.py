@@ -15,7 +15,7 @@ def count(pred,label):
 	total['weighted'] = metrics.accuracy_score(label.tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
 
 	return total
-output_product = 2*2*2
+output_product = 2*2
 class Two_class(nn.Module):
 	def __init__(self,args):
 		super(Two_class,self).__init__()
@@ -70,7 +70,7 @@ class Two_regression(nn.Module):
 		self.criterion = nn.BCEWithLogitsLoss(reduction='none')
 		
 		self.threshold1 = 0.7
-		self.threshold2 = 0.8
+		self.threshold2 = 0.5
 
 	def forward(self,x,label=None):
 		out = self.linear1(x)

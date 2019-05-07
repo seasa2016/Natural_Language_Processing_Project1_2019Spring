@@ -6,7 +6,7 @@ import os
 #first find the id for the input
 uids = pd.read_csv('./data/test.csv')['id'].tolist()
 
-for model in ['attnlstm']:
+for model in ['bimpm']:
 	for word in ['all_no','part_no']:
 		for pred in ['two_regression']:
 

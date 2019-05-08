@@ -431,6 +431,8 @@ class WsdmProcessor(DataProcessor):
 		"""Creates examples for the training and dev sets."""
 		#print(data.head(1)) 
 		ids = data['id'].tolist()
+		tid1s = data['tid1'].tolist()
+		tid2s = data['tid2'].tolist()
 		title1_zhs = data['title1_zh'].tolist()
 		title2_zhs = data['title2_zh'].tolist()
 		title1_ens = data['title1_en'].tolist()
@@ -439,23 +441,22 @@ class WsdmProcessor(DataProcessor):
 
 		examples = []
 		#id,tid1,tid2,title1_zh,title2_zh,title1_en,title2_en,label
-		for i,(guid,title1_zh,title2_zh,title1_en,title2_en,label) in enumerate( zip(ids,title1_zhs,title2_zhs,title1_ens,title2_ens,labels)):
+		for i,(guid,tid1,tid2,title1_zh,title2_zh,title1_en,title2_en,label) in enumerate( zip(ids,tid1s,tid2s,title1_zhs,title2_zhs,title1_ens,title2_ens,labels)):
 			text_a = title1_zh
 			text_b = title2_zh
 			
-			if(type(text_a)==float and type(text_b)==float):
-				text_a = ''
-				text_b = ''
-			elif(type(text_a)==float):
-				text_a = text_b
-			if(type(text_b)==float):
-				text_b = text_a
+			if(set_type=='train'):
+				if(type(text_a)==float or type(text_b)==float ):
+					continue
+				elif(tid1==tid2):
+					continue
 
 			label = label
 
 			examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-			if(set_type=='train'):
+			if(set_type=='train' and label=='agreed'):
 				examples.append(InputExample(guid=guid, text_a=text_b, text_b=text_a, label=label))
+
 		return examples
 
 

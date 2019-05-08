@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from sklearn import metrics
 import numpy as np
-
+from .Focal_loss import FocalLoss
 w = [1.0/16,1.0/15,1.0/5]
 def count(pred,label):
 	total = {}
@@ -15,6 +15,49 @@ def count(pred,label):
 	total['weighted'] = metrics.accuracy_score(label.tolist(), pred.tolist(), normalize=True, sample_weight=sample_weight)
 
 	return total
+
+class Focal_Two_class(nn.Module):
+	def __init__(self,lin_dim1,lin_dim2):
+		super(Focal_Two_class,self).__init__()
+		self.lin_dim1 = lin_dim1
+		self.lin_dim2 = lin_dim2
+		
+
+		self.linear1 = nn.Linear(self.lin_dim1,self.lin_dim2)
+		self.linear2_1 = nn.Linear(self.lin_dim2,2)
+		self.linear2_2 = nn.Linear(self.lin_dim2,2)
+		self.dropout = nn.Dropout()
+
+		self.criterion = FocalLoss(gamma=3)
+		self.w = [1.0/16,1.0/15,1.0/5]
+	def forward(self,x,label=None):
+		out = self.linear1(x)
+		out	= self.dropout(out)
+		
+		out_1 = self.linear2_1(F.relu(out))
+		out_2 = self.linear2_2(F.relu(out))
+		
+		pred = (out_1.topk(1)[1]*(1+out_2.topk(1)[1])).view(-1)
+		if(label is None):
+			#return predict output
+			return pred,[out_1,out_2]
+
+		else:
+			#return loss and acc
+			total = {'loss':{},'count':{}}
+			
+			loss = self.criterion(out_1,label[0]) 
+			total['loss']['relation'] = loss.cpu().detach().item()
+			total_loss = loss
+
+			loss = self.criterion(out_2,label[1]) 
+			total['loss']['type'] = loss.cpu().detach().item()
+			total_loss += loss
+			
+			total['count'] = count(pred,label[-1])
+			
+			return total_loss,total
+
 class Two_class(nn.Module):
 	def __init__(self,lin_dim1,lin_dim2):
 		super(Two_class,self).__init__()
@@ -149,6 +192,8 @@ class Base(nn.Module):
 			self.linear = Two_regression(args.lin_dim1,args.lin_dim2)
 		elif(args.pred=='three_class'):
 			self.linear = Three_class(args.lin_dim1,args.lin_dim2)
+		elif(args.pred=='focal_two_class'):
+			self.linear = Focal_Two_class(args.lin_dim1,args.lin_dim2)
 
 
 	def load(self):

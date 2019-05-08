@@ -28,7 +28,7 @@ class itemDataset(Dataset):
 				})
 				
 		elif(mode=='train' or mode=='eval'):
-			if(pred=='two_class'):
+			if('two_class' in pred):
 				disagreed = [[.0,1.0],[.0,1.0],2]
 				agreed = [[.0,1.0],[1.0,.0],1]
 				unrelated = [[1.0,.0],[.0,.0],0]

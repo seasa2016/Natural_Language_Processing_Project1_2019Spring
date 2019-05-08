@@ -28,7 +28,11 @@ class itemDataset(Dataset):
 				})
 				
 		elif(mode=='train' or mode=='eval'):
-			if('two_class' in pred):
+			if(pred=='two_class'):
+				disagreed = [[.0,1.0],[.0,1.0],2]
+				agreed = [[.0,1.0],[1.0,.0],1]
+				unrelated = [[1.0,.0],[.0,.0],0]
+			elif(pred=='focal_two_class'):
 				disagreed = [[.0,1.0],[.0,1.0],2]
 				agreed = [[.0,1.0],[1.0,.0],1]
 				unrelated = [[1.0,.0],[.0,.0],0]
@@ -87,7 +91,7 @@ class itemDataset(Dataset):
 			
 			if('label' in sample):
 				out['label']=[]
-				if(self.pred=='two_class' or self.pred=='two_regression'):
+				if(self.pred=='two_class' or self.pred=='focal_two_class' or self.pred=='two_regression'):
 					out['label'].append(torch.tensor(sample['label'][0],dtype=torch.float))
 					out['label'].append(torch.tensor(sample['label'][1],dtype=torch.float))
 				elif(self.pred=='three_class'):
@@ -130,8 +134,8 @@ def collate_fn(data):
 	return output
 
 if(__name__ == '__main__'):
-	data = itemDataset('./all_no_embedding/eval.csv',pred='linear_two_class')
+	data = itemDataset('./all_no_embedding/eval.csv',pred='focal_two_class')
 	print(data[0])
-
+	print()
 	print(collate_fn([data[0],data[1]]))
 

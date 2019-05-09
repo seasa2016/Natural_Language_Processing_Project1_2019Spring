@@ -56,7 +56,7 @@ class qalstm(Base):
 				desorted_res = padded_res[:, desorted_indices]
 
 			return desorted_res,state
-		def feat_extract(output,length,mask):
+		def feat_extract(outputs,lengths,masks):
 			"""
 			here we check for several output variant
 			1.largest
@@ -64,18 +64,24 @@ class qalstm(Base):
 			3.mean
 			"""
 			if( self.batch_first == False ):
-				output = output.transpose(0,1) 
+				for i in range(len(outputs)):
+					outputs[i] = outputs[i].transpose(0,1) 
 
-			result = []
+			results = [outputs[0].sum(dim=1).div(lengths[0].float().view(-1,1,1)).div( math.sqrt( float(self.hidden_dim) ) ).unsqueeze(1)]
+			#batch*1*hidden
+			key_normals = outputs[1].div( math.sqrt( float(self.hidden_dim) ) )
+			#batch*length2*hidden
 
-			#result.append( output.sum(dim=1) )
-
-				#result[0].append( torch.cat([ output[i][ length[i]-1 ][:self.hidden_dim],output[i][0][self.hidden_dim:]], dim=-1) )
+			#get the attention
+			attn_weight = results[0].bmm( query_normals[1].transpose(1,2) ).squeeze(1)		 #batch*1*length2
 			
-			result.append( output.sum(dim=1).div(lengths[0].float().view(-1,1))	)
-			result.append( output.max(dim=1)[0] )
+			#perform mask for the padding data
+			attn_weight += -1e8*lengths[1].float().unsqueeze(1)
+			attn_weight = attn_weight.softmax(dim=2)
+			
+			results.append(attn_weight.bmm(key_normals).squeeze(1))
 
-			return torch.cat( result , dim=-1 )
+			return torch.cat( results , dim=-1 )
 			
 		
 		query_embs = [self.word_emb(querys[0]),self.word_emb(querys[1])]

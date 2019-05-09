@@ -91,16 +91,19 @@ class qalstm(Base):
 		"""
 		Attention part
 		"""
+		query_result[0] = query_result[0].sum(dim=1).div(lengths[0].float().view(-1,1,1))
 		att_results = self.attention(query_result,lengths,masks)
+		results = [query_result[0],att_results[0]]
 		
 		"""
 		Aggregate
 		"""
-		agg_results = []
-		for att_result,length,mask in zip(att_results,lengths,masks):
-			agg_results.append(feat_extract(att_result,length.int(),mask))
+		#agg_results = []
+		#for att_result,length,mask in zip(att_results,lengths,masks):
+		#	agg_results.append(feat_extract(att_result,length.int(),mask))
 		 
-		result = torch.cat([agg_results[0],agg_results[1]],dim=1)
+
+		#result = torch.cat([agg_results[0],agg_results[1]],dim=1)
 
 		out = self.linear(result,label=label)
 

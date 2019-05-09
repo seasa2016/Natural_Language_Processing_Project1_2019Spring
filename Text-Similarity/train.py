@@ -157,7 +157,7 @@ def main():
 	parser.add_argument('--input_size', default=49527, type=int)
 	parser.add_argument('--batch_first', default=True, type=bool)
 	parser.add_argument('--mode' , default= 'train', type=str)
-	parser.add_argument('--epoch', default= 8, type=int)
+	parser.add_argument('--epoch', default= 5, type=int)
 
 
 	parser.add_argument('--data', default='./data/all_no_embedding/', type=str)
@@ -169,7 +169,6 @@ def main():
 	parser.add_argument('--save', required=True)
 	
 	args = parser.parse_args()
-	args.learning_rate += 0.0003
 	with open('{0}/vocab'.format(args.data)) as f:
 		args.word_num = len(f.readlines())
 	

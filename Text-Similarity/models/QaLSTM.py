@@ -10,7 +10,7 @@ import math
 class qalstm(Base):
 	def __init__(self,args):
 		if(not hasattr(args,'lin_dim1')):
-			args.lin_dim1 = args.hidden_dim * 2 *2 * 2
+			args.lin_dim1 = args.hidden_dim * 2 *2
 			args.lin_dim2 = args.hidden_dim
 
 		super(qalstm,self).__init__(args)
@@ -67,19 +67,20 @@ class qalstm(Base):
 				for i in range(len(outputs)):
 					outputs[i] = outputs[i].transpose(0,1) 
 
-			results = [outputs[0].sum(dim=1).div(lengths[0].float().view(-1,1,1)).div( math.sqrt( float(self.hidden_dim) ) ).unsqueeze(1)]
-			#batch*1*hidden
-			key_normals = outputs[1].div( math.sqrt( float(self.hidden_dim) ) )
-			#batch*length2*hidden
+			results = [outputs[0].sum(dim=1).div(lengths[0].float().view(-1,1)).div( math.sqrt( float(self.hidden_dim) ) ).unsqueeze(1)]
 
+			#batch*1*hidden
+			key_normal = outputs[1].div( math.sqrt( float(self.hidden_dim) ) )
+			#batch*length2*hidden
 			#get the attention
-			attn_weight = results[0].bmm( query_normals[1].transpose(1,2) ).squeeze(1)		 #batch*1*length2
+			attn_weight = results[0].bmm( key_normal.transpose(1,2) ).squeeze(1)		 #batch*1*length2
 			
 			#perform mask for the padding data
-			attn_weight += -1e8*lengths[1].float().unsqueeze(1)
-			attn_weight = attn_weight.softmax(dim=2)
+			attn_weight += -1e8*masks[1].float()
+			attn_weight = attn_weight.softmax(dim=1)
 			
-			results.append(attn_weight.bmm(key_normals).squeeze(1))
+			results.append(attn_weight.unsqueeze(1).bmm(key_normal).squeeze(1))
+			results[0] = results[0].squeeze(1)
 
 			return torch.cat( results , dim=-1 )
 			
@@ -97,9 +98,7 @@ class qalstm(Base):
 		"""
 		Attention part
 		"""
-		query_result[0] = query_result[0].sum(dim=1).div(lengths[0].float().view(-1,1,1))
-		att_results = self.attention(query_result,lengths,masks)
-		results = [query_result[0],att_results[0]]
+		results = feat_extract(query_result,lengths,masks)
 		
 		"""
 		Aggregate
@@ -111,6 +110,6 @@ class qalstm(Base):
 
 		#result = torch.cat([agg_results[0],agg_results[1]],dim=1)
 
-		out = self.linear(result,label=label)
+		out = self.linear(results,label=label)
 
 		return out

@@ -35,4 +35,5 @@ or you can run ./test_nn.sh, this will do all for you
 
 after run the testing, please use gen_ans.py to output the answer
 
-
+## bert
+for bert please run train_bert

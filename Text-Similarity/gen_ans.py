@@ -6,9 +6,9 @@ import os
 #first find the id for the input
 uids = pd.read_csv('./data/test.csv')['id'].tolist()
 
-for model in ['attnlstm','siamese']:
+for model in ['qalstm']:
 	for word in ['all_no','part_no']:
-		for pred in ['two_class','three_class','focal_two_class']:
+		for pred in ['two_regression','two_class','focal_two_class']:
 
 			target = '{0}_{1}_{2}_total'.format(model,word,pred)
 

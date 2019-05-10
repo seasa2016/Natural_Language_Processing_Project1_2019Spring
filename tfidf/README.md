@@ -8,5 +8,4 @@
 
 ## NOTE
 1. These two notebooks are developed in python3
-2. Data visualization package Plotly need a account to run, that is, some configration are needed.
-	(Detail: https://plot.ly/python/getting-started/)
+2. Data visualization package Plotly need a account to run, that is, some configration are needed. (Detail: https://plot.ly/python/getting-started/)

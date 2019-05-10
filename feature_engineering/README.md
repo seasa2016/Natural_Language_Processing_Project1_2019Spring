@@ -26,4 +26,18 @@
 
 ## NOTE
 1. Enviroment: python3
+    - bert-serving-client==1.8.9
+    - bert-serving-server==1.8.9
+    - gensim==3.7.2
+    - jieba==0.39
+    - Keras==2.2.4
+    - nltk==3.4.1
+    - numpy==1.16.2
+    - pandas==0.24.2
+    - requests==2.21.0
+    - scikit-learn==0.20.3
+    - scipy==1.2.1
+    - sklearn==0.0
+    - tensorflow==1.13.1
+    - xgboost==0.82
 2. bert-as-service: https://github.com/hanxiao/bert-as-service
